@@ -283,7 +283,7 @@ export default function Chat(props: { apiKeyApp: string }) {
                   color={iconColor}
                 />
               </Flex>
-              Public
+              GPT
             </Flex>
             <Flex
               cursor={'pointer'}
@@ -316,7 +316,7 @@ export default function Chat(props: { apiKeyApp: string }) {
                   color={iconColor}
                 />
               </Flex>
-              Private
+              Cohere
             </Flex>
             <Flex
             justifySelf={'flex-end'}
