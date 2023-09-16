@@ -23,6 +23,7 @@ import {
 import { useEffect, useState } from 'react';
 import { MdAutoAwesome, MdBolt, MdEdit, MdPerson } from 'react-icons/md';
 import Bg from '../public/img/chat/bg-image.png';
+import Web3 from 'web3';
 
 export default function Chat(props: { apiKeyApp: string }) {
   const services: OpenAIModel[] = ["cohere", "openai"];
@@ -175,6 +176,40 @@ export default function Chat(props: { apiKeyApp: string }) {
       }
     }
   }
+
+  const web3 = new Web3('https://mainnet.infura.io/v3/YOUR_INFURA_API_KEY');
+  const abi = [...]; 
+  const contractAddress = '0x...'; 
+  const [currentUrl, setCurrentUrl] = useState("")
+
+  const contract = new web3.eth.Contract(abi, contractAddress);
+
+  async function emitNextNode() {
+    const gas = await contract.methods.emitNextNode().estimateGas({ from: account });
+    const receipt = await contract.methods.emitNextNode().send({ from: account, gas: gas });
+    console.log(receipt);
+  }
+
+  async function readData() {
+    const index = await contract.methods.currentIndex().call();
+    const url = await contract.methods.urls(index).call();
+    console.log('Current index:', index);
+    console.log('Current URL:', url);
+    return (url);
+  }
+
+  useEffect(() => {
+    readData()
+      .then(() => {
+        return emitNextNode();
+      })
+      .then(() => {
+        return readData();
+      })
+      .catch((error) => {
+        console.error("An error occurred:", error);
+      });
+  }, []);
 
 
 
