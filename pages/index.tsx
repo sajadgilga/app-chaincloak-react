@@ -32,7 +32,7 @@ export default function Chat(props: { apiKeyApp: string }) {
   const [inputOnSubmit, setInputOnSubmit] = useState<string>('');
   const [inputCode, setInputCode] = useState<string>('');
   // Response message
-  const [outputCode, setOutputCode] = useState<string>('');
+  const [outputCodes, setOutputCodes] = useState<{message: string, isInput: boolean}[]>([]);
   // ChatGPT model
   const [model, setModel] = useState<OpenAIModel>(services[0]);
   // Loading state
@@ -76,12 +76,13 @@ export default function Chat(props: { apiKeyApp: string }) {
       );
       return;
     }
-    setOutputCode(' ');
     setLoading(true);
     const controller = new AbortController();
     const body: ChatBody = {
       messages: [{content: inputCode, role: 'user'}],
     };
+    setOutputCodes((prev) => [...prev, {message: inputCode, isInput: true}]);
+
 
     // -------------- Fetch --------------
     const response = await fetch(`http://localhost:8000/api/chat/ask/${model}`, {
@@ -110,7 +111,7 @@ export default function Chat(props: { apiKeyApp: string }) {
       return;
     }
 
-    setOutputCode(data.data);
+    setOutputCodes((prev) => [...prev, {message: data.data, isInput: false}]);
 
     setLoading(false);
   };
@@ -177,7 +178,6 @@ export default function Chat(props: { apiKeyApp: string }) {
   }
 
 
-
   // -------------- Copy Response --------------
   // const copyToClipboard = (text: string) => {
   //   const el = document.createElement('textarea');
@@ -226,7 +226,7 @@ export default function Chat(props: { apiKeyApp: string }) {
         pb={{ base: '60px'}}
       >
         {/* Model Change */}
-        <Flex direction={'column'} w="100%" mb={outputCode ? '20px' : 'auto'}>
+        <Flex direction={'column'} w="100%" mb={outputCodes.length > 0 ? '20px' : 'auto'}>
           <Flex
             mx="auto"
             zIndex="2"
@@ -333,81 +333,80 @@ export default function Chat(props: { apiKeyApp: string }) {
           </Flex>
 
         </Flex>
-        {/* Main Box */}
+        {/* Main Box */}        
         <Flex
           direction="column"
           w="100%"
           mx="auto"
-          display={outputCode ? 'flex' : 'none'}
+          display={outputCodes.length > 0 ? 'flex' : 'none'}
           mb={'auto'}
         >
-          <Flex w="100%" align={'center'} mb="10px">
-            <Flex
-              borderRadius="full"
-              justify="center"
-              align="center"
-              bg={'transparent'}
-              border="1px solid"
-              borderColor={borderColor}
-              me="20px"
-              h="40px"
-              minH="40px"
-              minW="40px"
-            >
-              <Icon
-                as={MdPerson}
-                width="20px"
-                height="20px"
-                color={brandColor}
-              />
-            </Flex>
-            <Flex
-              p="22px"
-              border="1px solid"
-              borderColor={borderColor}
-              borderRadius="14px"
-              w="100%"
-              zIndex={'2'}
-            >
-              <Text
-                color={textColor}
-                fontWeight="600"
-                fontSize={{ base: 'sm', md: 'md' }}
-                lineHeight={{ base: '24px', md: '26px' }}
+          {outputCodes.map((outputCode) => 
+          outputCode.isInput ?
+            <Flex w="100%" align={'center'} mb="10px">
+             
+              <Flex
+                p="22px"
+                border="1px solid"
+                borderColor={borderColor}
+                borderRadius="14px"
+                w="100%"
+                zIndex={'2'}
               >
-                {inputOnSubmit}
-              </Text>
-              <Icon
-                cursor="pointer"
-                as={MdEdit}
-                ms="auto"
-                width="20px"
-                height="20px"
-                color={gray}
-              />
+                <Text
+                  color={textColor}
+                  fontWeight="600"
+                  fontSize={{ base: 'sm', md: 'md' }}
+                  lineHeight={{ base: '24px', md: '26px' }}
+                >
+                  {outputCode.message}
+                </Text>
+              </Flex>
+
+              <Flex
+                borderRadius="full"
+                justify="center"
+                align="center"
+                bg={'transparent'}
+                border="1px solid"
+                borderColor={borderColor}
+                ms="20px"
+                h="40px"
+                minH="40px"
+                minW="40px"
+              >
+                <Icon
+                  as={MdPerson}
+                  width="20px"
+                  height="20px"
+                  color={brandColor}
+                />
+              </Flex>
             </Flex>
-          </Flex>
-          <Flex w="100%">
-            <Flex
-              borderRadius="full"
-              justify="center"
-              align="center"
-              bg={'linear-gradient(15.46deg, #4A25E1 26.3%, #7B5AFF 86.4%)'}
-              me="20px"
-              h="40px"
-              minH="40px"
-              minW="40px"
-            >
-              <Icon
-                as={MdAutoAwesome}
-                width="20px"
-                height="20px"
-                color="white"
-              />
+            :
+            <Flex w="100%" mb="10px">
+              <Flex
+                borderRadius="full"
+                justify="center"
+                align="center"
+                bg={'linear-gradient(15.46deg, #4A25E1 26.3%, #7B5AFF 86.4%)'}
+                me="20px"
+                h="40px"
+                minH="40px"
+                minW="40px"
+              >
+                <Icon
+                  as={MdAutoAwesome}
+                  width="20px"
+                  height="20px"
+                  color="white"
+                />
+              </Flex>
+              <MessageBoxChat output={outputCode.message} />
             </Flex>
-            <MessageBoxChat output={outputCode} />
-          </Flex>
+          )}
         </Flex>
+
         {/* Chat Input */}
         <Flex
           ms={{ base: '0px', xl: '60px' }}
