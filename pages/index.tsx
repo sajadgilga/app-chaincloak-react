@@ -60,16 +60,10 @@ export default function Chat(props: { apiKeyApp: string }) {
     { color: 'whiteAlpha.600' },
   );
   const handleTranslate = async () => {
-    const apiKey = apiKeyApp;
     setInputOnSubmit(inputCode);
 
     // Chat post conditions(maximum number of characters, valid message etc.)
     const maxCodeLength = model === 'cohere' ? 700 : 700;
-
-    if (!apiKeyApp?.includes('sk-') && !apiKey?.includes('sk-')) {
-      alert('Please enter an API key.');
-      return;
-    }
 
     if (!inputCode) {
       alert('Please enter your message.');
@@ -86,18 +80,15 @@ export default function Chat(props: { apiKeyApp: string }) {
     setLoading(true);
     const controller = new AbortController();
     const body: ChatBody = {
-      inputCode,
-      model,
-      apiKey,
+      messages: [{content: inputCode, role: 'user'}],
     };
 
     // -------------- Fetch --------------
-    const response = await fetch('https://link-cloak.heroku.app/api/chat/', {
+    const response = await fetch(`http://localhost:8000/api/chat/ask/${model}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      signal: controller.signal,
       body: JSON.stringify(body),
     });
 
@@ -105,13 +96,13 @@ export default function Chat(props: { apiKeyApp: string }) {
       setLoading(false);
       if (response) {
         alert(
-          'Something went wrong went fetching from the API. Make sure to use a valid API key.',
+          'Something went wrong went fetching from the API.',
         );
       }
       return;
     }
 
-    const data = response.body;
+    const data = await response.json();
 
     if (!data) {
       setLoading(false);
@@ -119,17 +110,7 @@ export default function Chat(props: { apiKeyApp: string }) {
       return;
     }
 
-    const reader = data.getReader();
-    const decoder = new TextDecoder();
-    let done = false;
-
-    while (!done) {
-      setLoading(true);
-      const { value, done: doneReading } = await reader.read();
-      done = doneReading;
-      const chunkValue = decoder.decode(value);
-      setOutputCode((prevCode) => prevCode + chunkValue);
-    }
+    setOutputCode(data.data);
 
     setLoading(false);
   };
