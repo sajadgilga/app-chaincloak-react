@@ -25,6 +25,7 @@ import { MdAutoAwesome, MdBolt, MdEdit, MdPerson } from 'react-icons/md';
 import Bg from '../public/img/chat/bg-image.png';
 
 export default function Chat(props: { apiKeyApp: string }) {
+  const services: OpenAIModel[] = ["cohere", "openai"];
   // *** If you use .env.local variable for your API key, method which we recommend, use the apiKey variable commented below
   const { apiKeyApp } = props;
   // Input States
@@ -33,7 +34,7 @@ export default function Chat(props: { apiKeyApp: string }) {
   // Response message
   const [outputCode, setOutputCode] = useState<string>('');
   // ChatGPT model
-  const [model, setModel] = useState<OpenAIModel>('gpt-3.5-turbo');
+  const [model, setModel] = useState<OpenAIModel>(services[0]);
   // Loading state
   const [loading, setLoading] = useState<boolean>(false);
 
@@ -63,7 +64,7 @@ export default function Chat(props: { apiKeyApp: string }) {
     setInputOnSubmit(inputCode);
 
     // Chat post conditions(maximum number of characters, valid message etc.)
-    const maxCodeLength = model === 'gpt-3.5-turbo' ? 700 : 700;
+    const maxCodeLength = model === 'cohere' ? 700 : 700;
 
     if (!apiKeyApp?.includes('sk-') && !apiKey?.includes('sk-')) {
       alert('Please enter an API key.');
@@ -91,7 +92,7 @@ export default function Chat(props: { apiKeyApp: string }) {
     };
 
     // -------------- Fetch --------------
-    const response = await fetch('/api/chatAPI', {
+    const response = await fetch('https://link-cloak.heroku.app/api/chat/', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -193,15 +194,15 @@ export default function Chat(props: { apiKeyApp: string }) {
               transition="0.3s"
               justify={'center'}
               align="center"
-              bg={model === 'gpt-3.5-turbo' ? buttonBg : 'transparent'}
+              bg={model === 'cohere' ? buttonBg : 'transparent'}
               w="174px"
               h="70px"
-              boxShadow={model === 'gpt-3.5-turbo' ? buttonShadow : 'none'}
+              boxShadow={model === 'cohere' ? buttonShadow : 'none'}
               borderRadius="14px"
               color={textColor}
               fontSize="18px"
               fontWeight={'700'}
-              onClick={() => setModel('gpt-3.5-turbo')}
+              onClick={() => setModel('cohere')}
             >
               <Flex
                 borderRadius="full"
@@ -219,22 +220,22 @@ export default function Chat(props: { apiKeyApp: string }) {
                   color={iconColor}
                 />
               </Flex>
-              Public
+              Cohere
             </Flex>
             <Flex
               cursor={'pointer'}
               transition="0.3s"
               justify={'center'}
               align="center"
-              bg={model === 'gpt-4' ? buttonBg : 'transparent'}
+              bg={model === 'openai' ? buttonBg : 'transparent'}
               w="164px"
               h="70px"
-              boxShadow={model === 'gpt-4' ? buttonShadow : 'none'}
+              boxShadow={model === 'openai' ? buttonShadow : 'none'}
               borderRadius="14px"
               color={textColor}
               fontSize="18px"
               fontWeight={'700'}
-              onClick={() => setModel('gpt-4')}
+              onClick={() => setModel('openai')}
             >
               <Flex
                 borderRadius="full"
@@ -252,7 +253,7 @@ export default function Chat(props: { apiKeyApp: string }) {
                   color={iconColor}
                 />
               </Flex>
-              Private
+              OpenAI
             </Flex>
           </Flex>
 
