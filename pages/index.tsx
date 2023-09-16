@@ -177,26 +177,23 @@ export default function Chat(props: { apiKeyApp: string }) {
     }
   }
 
-  const web3 = new Web3('https://mainnet.infura.io/v3/YOUR_INFURA_API_KEY');
+  const web3 = new Web3('https://sepolia.infura.io/v3/6470eff63ad7429e88bab4a2e92a16ea');
   const abi = [...]; 
   const contractAddress = '0x...'; 
   const [currentUrl, setCurrentUrl] = useState("")
 
   const contract = new web3.eth.Contract(abi, contractAddress);
 
-  async function emitNextNode() {
+  const emitNextNode = async () => {
     const gas = await contract.methods.emitNextNode().estimateGas({ from: account });
-    const receipt = await contract.methods.emitNextNode().send({ from: account, gas: gas });
-    console.log(receipt);
-  }
+    await contract.methods.emitNextNode().send({ from: account, gas: gas });
+  };
 
-  async function readData() {
+  const readData = async () => {
     const index = await contract.methods.currentIndex().call();
     const url = await contract.methods.urls(index).call();
-    console.log('Current index:', index);
-    console.log('Current URL:', url);
-    return (url);
-  }
+    setCurrentUrl(url);
+  };
 
   useEffect(() => {
     readData()
