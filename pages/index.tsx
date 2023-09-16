@@ -195,13 +195,19 @@ export default function Chat(props: { apiKeyApp: string }) {
       "anonymous": false,
       "inputs": [
         {
+          "indexed": true,
+          "internalType": "address",
+          "name": "sender",
+          "type": "address"
+        },
+        {
           "indexed": false,
           "internalType": "string",
-          "name": "url",
+          "name": "appendedUrl",
           "type": "string"
         }
       ],
-      "name": "UrlAdded",
+      "name": "UrlAppended",
       "type": "event"
     },
     {
@@ -231,7 +237,7 @@ export default function Chat(props: { apiKeyApp: string }) {
           "type": "string"
         }
       ],
-      "name": "addNode",
+      "name": "appendUrl",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
@@ -276,7 +282,7 @@ export default function Chat(props: { apiKeyApp: string }) {
       "type": "function"
     }
   ];
-  const contractAddress = '0x3056D9F71BCF938469a2AD6ce80084bC4BBa142b'; 
+  const contractAddress = '0x6dDe9aa8a5eD5230b5D62bfA37467fBd6679b241'; 
   const [currentUrl, setCurrentUrl] = useState("")
 
   const contract = new web3.eth.Contract(abi, contractAddress);
