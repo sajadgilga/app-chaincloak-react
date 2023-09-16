@@ -60,7 +60,7 @@ export default function Chat(props: { apiKeyApp: string }) {
     { color: 'gray.500' },
     { color: 'whiteAlpha.600' },
   );
-  const handleTranslate = async () => {
+  const handleTranslate = async (currentUrl) => {
     setInputOnSubmit(inputCode);
 
     // Chat post conditions(maximum number of characters, valid message etc.)
@@ -119,6 +119,7 @@ export default function Chat(props: { apiKeyApp: string }) {
 
   const [account, setAccount] = useState("");
   const [publicKey, setPublicKey] = useState("");
+  const[currentUrl, setCurrentUrl] = useState("")
   const [error, setError] = useState("");
   const { ethereum } = typeof window !== "undefined" ? window : {};
   const checkEthereumExists = () => {
@@ -128,18 +129,20 @@ export default function Chat(props: { apiKeyApp: string }) {
     }
     return true;
   };
+
   const getConnectedAccounts = async () => {
     setError("");
     try {
       const accounts = await ethereum.request({
         method: "eth_accounts",
       });
-      console.log(accounts);
+      console.log('unknown',accounts);
       setAccount(accounts[0]);
     } catch (err) {
       setError(err.message);
     }
   };
+
   useEffect(() => {
     if (checkEthereumExists()) {
       ethereum.on("accountsChanged", getConnectedAccounts);
@@ -162,14 +165,12 @@ export default function Chat(props: { apiKeyApp: string }) {
     if (checkEthereumExists()) {
       try {
         if (account) {
-          // Disconnect the wallet
           setAccount("");
         } else {
-          // Connect the wallet
           const accounts = await ethereum.request({
             method: "eth_requestAccounts",
           });
-          console.log(accounts);
+          console.log('connected accounts',accounts);
           setAccount(accounts[0]);
         }
       } catch (err) {
@@ -230,6 +231,19 @@ export default function Chat(props: { apiKeyApp: string }) {
       "type": "event"
     },
     {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "string",
+          "name": "url",
+          "type": "string"
+        }
+      ],
+      "name": "UrlListEmitted",
+      "type": "event"
+    },
+    {
       "inputs": [
         {
           "internalType": "string",
@@ -253,6 +267,13 @@ export default function Chat(props: { apiKeyApp: string }) {
         }
       ],
       "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "emitAllUrls",
+      "outputs": [],
+      "stateMutability": "nonpayable",
       "type": "function"
     },
     {
@@ -282,34 +303,64 @@ export default function Chat(props: { apiKeyApp: string }) {
       "type": "function"
     }
   ];
-  const contractAddress = '0x6dDe9aa8a5eD5230b5D62bfA37467fBd6679b241'; 
-  const [currentUrl, setCurrentUrl] = useState("")
+  const contractAddress = '0xaa39fbCBd0899c9445770361051Db602C55AABA8'; 
+
 
   const contract = new web3.eth.Contract(abi, contractAddress);
 
-  const emitNextNode = async () => {
-    const gas = await contract.methods.emitNextNode().estimateGas({ from: account });
-    await contract.methods.emitNextNode().send({ from: account, gas: gas });
-  };
+  async function emitNextNode() {
+    const web3 = new Web3(window.ethereum);
+    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+    const account = accounts[0];
+    const contract = new web3.eth.Contract(abi, contractAddress);
+
+    try {
+      console.log('temp',account)
+        const gas = await contract.methods.emitNextNode().estimateGas({ from: account });
+        const txReceipt = await contract.methods.emitNextNode().send({ from: account, gas });
+        console.log(`Transaction hash: ${txReceipt.transactionHash}`);
+    } catch (error) {
+        console.error(error);
+    }
+}
+
 
   const readData = async () => {
-    const index = await contract.methods.currentIndex().call();
-    const url = await contract.methods.urls(index).call();
-    setCurrentUrl(url);
+    const eventName = 'UrlListEmitted'; // Replace with your event name
+    const filterOptions = {}; // You can add additional filters here if needed
+
+    contract.getPastEvents(eventName, {
+      filter: filterOptions,
+      fromBlock: 0,
+      toBlock: 'latest',
+    })
+      .then(events => {
+        if (events.length > 0) {
+          const latestEvent = events[events.length - 1];
+          console.log('Latest Event:', latestEvent.returnValues); // Access event data
+          console.log(latestEvent.returnValues.url)
+          setCurrentUrl(latestEvent.returnValues.url);
+        } else {
+          console.log('No events found');
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+      });
   };
 
   useEffect(() => {
+    if (!account) {
+      return;
+    }
     readData()
       .then(() => {
         return emitNextNode();
       })
-      .then(() => {
-        return readData();
-      })
       .catch((error) => {
         console.error("An error occurred:", error);
       });
-  }, []);
+  }, [account]);
 
 
   // -------------- Copy Response --------------
@@ -581,7 +632,9 @@ export default function Chat(props: { apiKeyApp: string }) {
                 bg: 'linear-gradient(15.46deg, #4A25E1 26.3%, #7B5AFF 86.4%)',
               },
             }}
-            onClick={handleTranslate}
+            onClick={ () => {
+              handleTranslate(currentUrl);
+            }}
             isLoading={loading ? true : false}
           >
             Submit
