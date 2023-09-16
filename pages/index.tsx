@@ -86,7 +86,7 @@ export default function Chat(props: { apiKeyApp: string }) {
 
 
     // -------------- Fetch --------------
-    const response = await fetch(`http://localhost:8000/${currentUrl}/${model}`, {
+    const response = await fetch(`${currentUrl}/${model}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
