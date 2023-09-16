@@ -133,6 +133,70 @@ export default function Chat(props: { apiKeyApp: string }) {
 
     setLoading(false);
   };
+
+  const [account, setAccount] = useState("");
+  const [publicKey, setPublicKey] = useState("");
+  const [error, setError] = useState("");
+  const { ethereum } = typeof window !== "undefined" ? window : {};
+  const checkEthereumExists = () => {
+    if (!ethereum) {
+      setError("Please Install MetaMask.");
+      return false;
+    }
+    return true;
+  };
+  const getConnectedAccounts = async () => {
+    setError("");
+    try {
+      const accounts = await ethereum.request({
+        method: "eth_accounts",
+      });
+      console.log(accounts);
+      setAccount(accounts[0]);
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+  useEffect(() => {
+    if (checkEthereumExists()) {
+      ethereum.on("accountsChanged", getConnectedAccounts);
+      getConnectedAccounts();
+    }
+    return () => {
+      if (checkEthereumExists()) {
+        ethereum.removeListener("accountsChanged", getConnectedAccounts);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    // Update the publicKey when the account changes
+    setPublicKey(account || "");
+  }, [account]);
+
+  const handleConnect = async () => {
+    setError("");
+    if (checkEthereumExists()) {
+      try {
+        if (account) {
+          // Disconnect the wallet
+          setAccount("");
+        } else {
+          // Connect the wallet
+          const accounts = await ethereum.request({
+            method: "eth_requestAccounts",
+          });
+          console.log(accounts);
+          setAccount(accounts[0]);
+        }
+      } catch (err) {
+        setError(err.message);
+      }
+    }
+  }
+
+
+
   // -------------- Copy Response --------------
   // const copyToClipboard = (text: string) => {
   //   const el = document.createElement('textarea');
@@ -254,6 +318,36 @@ export default function Chat(props: { apiKeyApp: string }) {
                 />
               </Flex>
               OpenAI
+            </Flex>
+            <Flex
+            justifySelf={'flex-end'}
+            px="100px"
+            >
+            <Button
+            variant="primary"
+            py="20px"
+            px="16px"
+            fontSize="sm"
+            borderRadius="35px"
+            ms="auto"
+            w={{ base: '160px', md: '210px' }}
+            h="54px"
+            _hover={{
+              boxShadow:
+                '0px 21px 27px -10px rgba(96, 60, 255, 0.48) !important',
+              bg:
+                'linear-gradient(15.46deg, #4A25E1 26.3%, #7B5AFF 86.4%) !important',
+              _disabled: {
+                bg: 'linear-gradient(15.46deg, #4A25E1 26.3%, #7B5AFF 86.4%)',
+              },
+            }}
+            onClick={handleConnect}
+            isLoading={loading ? true : false}
+          >
+            {account
+              ? `Disconnect Wallet (${publicKey.slice(0, 5)})`
+              : "Connect Wallet"}
+          </Button>
             </Flex>
           </Flex>
 
