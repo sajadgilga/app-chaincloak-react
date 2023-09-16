@@ -23,6 +23,7 @@ import {
 import { useEffect, useState } from 'react';
 import { MdAutoAwesome, MdBolt, MdEdit, MdPerson } from 'react-icons/md';
 import Bg from '../public/img/chat/bg-image.png';
+import Web3 from 'web3';
 
 export default function Chat(props: { apiKeyApp: string }) {
   const services: OpenAIModel[] = ["cohere", "openai"];
@@ -85,7 +86,7 @@ export default function Chat(props: { apiKeyApp: string }) {
 
 
     // -------------- Fetch --------------
-    const response = await fetch(`http://localhost:8000/api/chat/ask/${model}`, {
+    const response = await fetch(`http://localhost:8000/${currentUrl}/${model}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -176,6 +177,107 @@ export default function Chat(props: { apiKeyApp: string }) {
       }
     }
   }
+
+  const web3 = new Web3('https://sepolia.infura.io/v3/6470eff63ad7429e88bab4a2e92a16ea');
+  const abi = [
+    {
+      "inputs": [
+        {
+          "internalType": "string[]",
+          "name": "initialUrls",
+          "type": "string[]"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "sender",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "string",
+          "name": "url",
+          "type": "string"
+        }
+      ],
+      "name": "UrlEmitted",
+      "type": "event"
+    },
+    {
+      "inputs": [],
+      "name": "currentIndex",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "emitNextNode",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "urls",
+      "outputs": [
+        {
+          "internalType": "string",
+          "name": "",
+          "type": "string"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ]; 
+  const contractAddress = '0x...'; 
+  const [currentUrl, setCurrentUrl] = useState("")
+
+  const contract = new web3.eth.Contract(abi, contractAddress);
+
+  const emitNextNode = async () => {
+    const gas = await contract.methods.emitNextNode().estimateGas({ from: account });
+    await contract.methods.emitNextNode().send({ from: account, gas: gas });
+  };
+
+  const readData = async () => {
+    const index = await contract.methods.currentIndex().call();
+    const url = await contract.methods.urls(index).call();
+    setCurrentUrl(url);
+  };
+
+  useEffect(() => {
+    readData()
+      .then(() => {
+        return emitNextNode();
+      })
+      .then(() => {
+        return readData();
+      })
+      .catch((error) => {
+        console.error("An error occurred:", error);
+      });
+  }, []);
 
 
   // -------------- Copy Response --------------
