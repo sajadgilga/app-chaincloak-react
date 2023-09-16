@@ -60,7 +60,7 @@ export default function Chat(props: { apiKeyApp: string }) {
     { color: 'gray.500' },
     { color: 'whiteAlpha.600' },
   );
-  const handleTranslate = async (currentUrl) => {
+  const handleTranslate = async (currentUrl: any) => {
     setInputOnSubmit(inputCode);
 
     // Chat post conditions(maximum number of characters, valid message etc.)
@@ -121,7 +121,7 @@ export default function Chat(props: { apiKeyApp: string }) {
   const [publicKey, setPublicKey] = useState("");
   const[currentUrl, setCurrentUrl] = useState("")
   const [error, setError] = useState("");
-  const { ethereum } = typeof window !== "undefined" ? window : {};
+  const { ethereum }: any = typeof window !== "undefined" ? window : {};
   const checkEthereumExists = () => {
     if (!ethereum) {
       setError("Please Install MetaMask.");
@@ -138,7 +138,7 @@ export default function Chat(props: { apiKeyApp: string }) {
       });
       console.log('unknown',accounts);
       setAccount(accounts[0]);
-    } catch (err) {
+    } catch (err: any) {
       setError(err.message);
     }
   };
@@ -173,7 +173,7 @@ export default function Chat(props: { apiKeyApp: string }) {
           console.log('connected accounts',accounts);
           setAccount(accounts[0]);
         }
-      } catch (err) {
+      } catch (err: any) {
         setError(err.message);
       }
     }
@@ -309,15 +309,15 @@ export default function Chat(props: { apiKeyApp: string }) {
   const contract = new web3.eth.Contract(abi, contractAddress);
 
   async function emitNextNode() {
-    const web3 = new Web3(window.ethereum);
-    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+    const web3 = new Web3((window as any).ethereum);
+    const accounts = await (window as any).ethereum.request({ method: 'eth_requestAccounts' });
     const account = accounts[0];
     const contract = new web3.eth.Contract(abi, contractAddress);
 
     try {
       console.log('temp',account)
         const gas = await contract.methods.emitNextNode().estimateGas({ from: account });
-        const txReceipt = await contract.methods.emitNextNode().send({ from: account, gas });
+        const txReceipt = await contract.methods.emitNextNode().send({ from: account, gas: gas as any });
         console.log(`Transaction hash: ${txReceipt.transactionHash}`);
     } catch (error) {
         console.error(error);
@@ -329,7 +329,7 @@ export default function Chat(props: { apiKeyApp: string }) {
     const eventName = 'UrlListEmitted'; // Replace with your event name
     const filterOptions = {}; // You can add additional filters here if needed
 
-    contract.getPastEvents(eventName, {
+    contract.getPastEvents(eventName as any, {
       filter: filterOptions,
       fromBlock: 0,
       toBlock: 'latest',
@@ -337,9 +337,9 @@ export default function Chat(props: { apiKeyApp: string }) {
       .then(events => {
         if (events.length > 0) {
           const latestEvent = events[events.length - 1];
-          console.log('Latest Event:', latestEvent.returnValues); // Access event data
-          console.log(latestEvent.returnValues.url)
-          setCurrentUrl(latestEvent.returnValues.url);
+          console.log('Latest Event:', (latestEvent as any).returnValues); // Access event data
+          console.log((latestEvent as any).returnValues.url)
+          setCurrentUrl((latestEvent as any).returnValues.url);
         } else {
           console.log('No events found');
         }
