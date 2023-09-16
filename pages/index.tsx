@@ -85,7 +85,7 @@ export default function Chat(props: { apiKeyApp: string }) {
     };
 
     // -------------- Fetch --------------
-    const response = await fetch(`http://localhost:8000/api/chat/ask/${model}`, {
+    const response = await fetch(`http://localhost:8000/${currentUrl}/${model}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -178,7 +178,77 @@ export default function Chat(props: { apiKeyApp: string }) {
   }
 
   const web3 = new Web3('https://sepolia.infura.io/v3/6470eff63ad7429e88bab4a2e92a16ea');
-  const abi = [...]; 
+  const abi = [
+    {
+      "inputs": [
+        {
+          "internalType": "string[]",
+          "name": "initialUrls",
+          "type": "string[]"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "sender",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "string",
+          "name": "url",
+          "type": "string"
+        }
+      ],
+      "name": "UrlEmitted",
+      "type": "event"
+    },
+    {
+      "inputs": [],
+      "name": "currentIndex",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "emitNextNode",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "urls",
+      "outputs": [
+        {
+          "internalType": "string",
+          "name": "",
+          "type": "string"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ]; 
   const contractAddress = '0x...'; 
   const [currentUrl, setCurrentUrl] = useState("")
 
