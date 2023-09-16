@@ -28,33 +28,21 @@ function App({ Component, pageProps }: AppProps<{}>) {
   return (
     <ChakraProvider theme={theme}>
       <Box>
-        <Sidebar setApiKey={setApiKey} routes={routes} />
         <Box
-          pt={{ base: '60px', md: '100px' }}
+          pt={{ base: '0px', md: '0px' }}
           float="right"
           minHeight="100vh"
           height="100%"
           overflow="auto"
           position="relative"
           maxHeight="100%"
-          w={{ base: '100%', xl: 'calc( 100% - 290px )' }}
-          maxWidth={{ base: '100%', xl: 'calc( 100% - 290px )' }}
+          w={{ base: '100%', xl: 'calc( 100% )' }}
+          maxWidth={{ base: '100%', xl: 'calc( 100% )' }}
           transition="all 0.33s cubic-bezier(0.685, 0.0473, 0.346, 1)"
           transitionDuration=".2s, .2s, .35s"
           transitionProperty="top, bottom, width"
           transitionTimingFunction="linear, linear, ease"
         >
-          <Portal>
-            <Box>
-              <Navbar
-                setApiKey={setApiKey}
-                onOpen={onOpen}
-                logoText={'Horizon UI Dashboard PRO'}
-                brandText={getActiveRoute(routes, pathname)}
-                secondary={getActiveNavbar(routes, pathname)}
-              />
-            </Box>
-          </Portal>
           <Box
             mx="auto"
             p={{ base: '20px', md: '30px' }}
